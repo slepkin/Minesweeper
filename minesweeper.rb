@@ -2,11 +2,83 @@ require 'time'
 require 'json'
 
 class MinesweeperGame
-  attr_accessor :true_board_array, :known_board_array, :size
-  @@moves = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]]
-
+  attr_accessor :true_board_array, :known_board_array, :size, :board
 
   def initialize(size, mine_num)
+    @board = Board.new(size, mine_num)
+
+    play
+  end
+
+  def play
+    time = Time.now
+    player = Human.new
+    until game_over?
+      @board.display_board
+      input = player.take_turn
+      command = input[0]
+      case command
+      when "r"
+        coords = input[1..2].map(&:to_i)
+        @board.reveal!(coords[0],coords[1])
+        @board.reveal_adjacencies(coords)
+      when "f"
+        coords = input[1..2].map(&:to_i)
+        @board.flag!(coords[0],coords[1])
+      when "save"
+        save_game
+      when "load"
+        load_game
+      when "quit" || "exit"
+        break
+      else
+        puts "Not a valid command"
+      end
+    end
+
+    @board.display_board
+
+    if @board.string_count("M", @board.known_board_array) > 0
+      puts "BOOM!\nIt took you #{Time.now - time} seconds to lose miserably."
+    elsif game_over?
+      puts "You win!\nIt only took #{Time.now - time} seconds."
+    end
+  end
+
+  def game_over?
+    (@board.string_count("F", @board.known_board_array) == string_count("M", @board.true_board_array) && \
+        @board.string_count("*", @board.known_board_array) == 0) || \
+        @board.string_count("M", @board.known_board_array) > 0
+  end
+
+  def save_game
+    save_string = {
+      :known_board => @board.known_board_array,
+      :true_board => @board.true_board_array,
+      :time => Time.now - time
+    }.to_json
+    puts "Name of file?"
+    filename = gets.chomp
+    File.open(filename, "w") {|file| file.write(save_string)}
+    puts "Game saved to #{filename}"
+  end
+
+  def load_game
+    puts "Name of file to load?"
+    filename = gets.chomp
+    loaded_hash = JSON.parse(File.read(filename))
+    @board.known_board_array = loaded_hash["known_board"]
+    @board.true_board_array = loaded_hash["true_board"]
+    time = (Time.now - loaded_hash["time"])
+    puts "Loaded #{filename}"
+  end
+end
+
+class Board
+  attr_accessor :known_board_array, :true_board_array, :size
+  @@moves = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]]
+
+  def initialize(size,mine_num)
     @size = size
     @known_board_array = []
     size.times{@known_board_array << []}
@@ -15,7 +87,7 @@ class MinesweeperGame
     end
 
     @true_board_array = []
-    size.times{ |i| @true_board_array << @known_board_array[i].dup}
+    size.times{|i| @true_board_array << @known_board_array[i].dup}
 
     #Add mines
     until string_count("M",@true_board_array) == mine_num
@@ -33,52 +105,21 @@ class MinesweeperGame
     end
   end
 
-  def play
-    time = Time.now
-    player = Human.new
-    until (string_count("F",@known_board_array) == string_count("M",@true_board_array) && \
-    string_count("*",@known_board_array) == 0) || \
-    string_count("M",@known_board_array) > 0
-      display_board
-      input = player.take_turn
-      command = input[0].to_sym
-      case command
-      when :r
-        coords = input[1..2].map(&:to_i)
-        reveal!(coords[0],coords[1])
-        reveal_adjacencies(coords)
-      when :f
-        coords = input[1..2].map(&:to_i)
-        if @known_board_array[coords[0]][coords[1]] == "F"
-          @known_board_array[coords[0]][coords[1]] = "*"
-        else
-          @known_board_array[coords[0]][coords[1]] = "F"
-        end
-      when :save
-        # Save here
-        save_string = {
-          :known_board => @known_board_array,
-          :true_board => @true_board_array,
-          :time => Time.now - time
-        }.to_json
-        File.open("save_file.txt", "w") {|file| file.write(save_string)}
-      when :load
-        # Load here
-        loaded_hash = JSON.parse(File.read("save_file.txt"))
-        @known_board_array = loaded_hash["known_board"]
-        @true_board_array = loaded_hash["true_board"]
-        time = (Time.now - loaded_hash["time"])
-      else
-        puts "Not a valid command"
-      end
+  def string_count(str,grid) #Counts how many times a string appears on grid
+    str_count = 0
+    grid.each do |x|
+      str_count += x.count(str)
     end
+    str_count
+  end
 
-    display_board
-    if string_count("M",@known_board_array) > 0
-      puts "BOOM!\nIt took you #{Time.now - time} seconds to lose miserably."
-    else
-      puts "You win!\nIt only took #{Time.now - time} seconds."
+  def surrounding_mines(coord1, coord2)
+    count = 0
+    @@moves.each do |move|
+      y,x = move
+      count += 1 if mine?([coord1 + y,coord2 + x]) && in_board?([coord1 + y,coord2 + x])
     end
+    count
   end
 
   def display_board
@@ -90,53 +131,42 @@ class MinesweeperGame
     end
   end
 
-  def string_count(str,grid)
-    str_count = 0
-    grid.each do |x|
-      str_count += x.count(str)
+  def flag!(coord1, coord2)
+    if @known_board_array[coord1][coord2] == "F"
+      @known_board_array[coord1][coord2] = "*"
+    else
+      @known_board_array[coord1][coord2] = "F"
     end
-    str_count
   end
 
   def adjacent_nonmine(coords)
     adjacencies = []
     @@moves.each do |move|
-      if !mine?([coords[0] + move[0], coords[1] + move[1]]) && in_board?([coords[0] + move[0], coords[1] + move[1]])
-        adjacencies << [coords[0]+move[0],coords[1]+move[1]]
+      adj_coord = [coords[0]+move[0],coords[1]+move[1]]
+      if !mine?(adj_coord) && in_board?(adj_coord)
+        adjacencies << adj_coord
       end
     end
     adjacencies
   end
 
   def reveal_adjacencies(coords, excluded = [coords])
-    if @true_board_array[coords[0]][coords[1]] == "_" && @known_board_array != "F"
+    y, x = coords
+    if @true_board_array[y][x] == "_" && @known_board_array != "F"
       adjacencies = adjacent_nonmine(coords) - excluded
 
       adjacencies.each do |adj_coords|
-        reveal!(adj_coords[0],adj_coords[1])
-        if @true_board_array[adj_coords[0]][adj_coords[1]] == "_"
+        y2, x2 = adj_coords
+        reveal!(y2,x2)
+        if @true_board_array[y2][x2] == "_"
           excluded << adj_coords
           reveal_adjacencies(adj_coords, excluded)
-        elsif @true_board_array[adj_coords[0]][adj_coords[1]].is_a? Integer
+        elsif @true_board_array[y2][x2].is_a? Integer
           excluded << adj_coords
         end
       end
     end
   end
-
-  def surrounding_mines(coord1, coord2)
-    count = 0
-    count += 1 if mine?([coord1 - 1,coord2 - 1]) && in_board?([coord1 - 1,coord2 - 1])
-    count += 1 if mine?([coord1 - 1,coord2 + 0]) && in_board?([coord1 - 1,coord2 + 0])
-    count += 1 if mine?([coord1 - 1,coord2 + 1]) && in_board?([coord1 - 1,coord2 + 1])
-    count += 1 if mine?([coord1 + 0,coord2 - 1]) && in_board?([coord1 + 0,coord2 - 1])
-    count += 1 if mine?([coord1 + 0,coord2 + 1]) && in_board?([coord1 + 0,coord2 + 1])
-    count += 1 if mine?([coord1 + 1,coord2 - 1]) && in_board?([coord1 + 1,coord2 - 1])
-    count += 1 if mine?([coord1 + 1,coord2 + 0]) && in_board?([coord1 + 1,coord2 + 0])
-    count += 1 if mine?([coord1 + 1,coord2 + 1]) && in_board?([coord1 + 1,coord2 + 1])
-    count
-  end
-
 
   def in_board?(coords)
     coords[0] >= 0 && coords[0] < @size && coords[1] >= 0 && coords[1] < @size
@@ -154,7 +184,6 @@ class MinesweeperGame
       @known_board_array[coord1][coord2] = @true_board_array[coord1][coord2]
     end
   end
-
 end
 
 class Human
