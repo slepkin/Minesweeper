@@ -46,7 +46,7 @@ class MinesweeperGame
   end
 
   def game_over?
-    (@board.string_count("F", @board.known_board_array) == string_count("M", @board.true_board_array) && \
+    (@board.string_count("F", @board.known_board_array) == @board.string_count("M", @board.true_board_array) && \
         @board.string_count("*", @board.known_board_array) == 0) || \
         @board.string_count("M", @board.known_board_array) > 0
   end
@@ -132,18 +132,23 @@ class Board
   end
 
   def flag!(coord1, coord2)
-    if @known_board_array[coord1][coord2] == "F"
-      @known_board_array[coord1][coord2] = "*"
+    case @known_board_array[coord1][coord2]
+    when "F" then @known_board_array[coord1][coord2] = "*"
+    when "*" then @known_board_array[coord1][coord2] = "F"
     else
-      @known_board_array[coord1][coord2] = "F"
+      puts "Invalid location for flag."
     end
   end
 
   def adjacent_nonmine(coords)
+    adjacent_in_board(coords).select{|adj_coord| !mine?(adj_coord)}
+  end
+
+  def adjacent_in_board(coords)
     adjacencies = []
     @@moves.each do |move|
       adj_coord = [coords[0]+move[0],coords[1]+move[1]]
-      if !mine?(adj_coord) && in_board?(adj_coord)
+      if in_board?(adj_coord)
         adjacencies << adj_coord
       end
     end
@@ -192,3 +197,28 @@ class Human
     gets.chomp.split
   end
 end
+
+#It would be neat to add a rudimentary AI, but Ke advised us not to today.
+
+# class Computer
+#
+#   def
+#   def take_turn
+#     #r or f something
+#   end
+#
+#   def safe_to_flag?(coord1,coord2)
+#
+#   end
+#
+#   def safe_to_reveal?(coord1,coord2)
+#
+#   end
+#
+# end
+
+puts "How wide should the field be?"
+size = gets.chomp.to_i
+puts "How many mines?"
+mine_num = gets.chomp.to_i
+MinesweeperGame.new(size,mine_num)
