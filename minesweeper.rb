@@ -65,11 +65,9 @@ class MinesweeperGame
       when :load
         # Load here
         loaded_hash = JSON.parse(File.read("save_file.txt"))
-        p loaded_hash
-        @known_board_array = loaded_hash[:known_board]
-        @true_board_array = loaded_hash[:true_board]
-        #time = (Time.now - loaded_hash[:time])
-        p @known_board_array.class
+        @known_board_array = loaded_hash["known_board"]
+        @true_board_array = loaded_hash["true_board"]
+        time = (Time.now - loaded_hash["time"])
       else
         puts "Not a valid command"
       end
