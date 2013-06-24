@@ -10,21 +10,31 @@ class MinesweeperGame
     play
   end
 
+  # REV: I added some lines between the loop and the case block. Rewrote a few lines, don't know if you would prefer these or not but I just put it in there.
+
   def play
     time = Time.now
     player = Human.new
+
     until game_over?
       @board.display_board
       input = player.take_turn
-      input.nil? ? command = nil : command = input[0]
+      command = input.nil? ? nil : input[0]
+      # input.nil? ? command = nil : command = input[0]
+
       case command
       when "r"
-        coords = input[1..2].map(&:to_i)
-        @board.reveal!(coords[0],coords[1])
-        @board.reveal_adjacencies(coords)
+        x, y = input[1..2].map(&:to_i)
+        # coords = input[1..2].map(&:to_i)
+        @board.reveal!(x, y)
+        # @board.reveal!(coords[0],coords[1])
+        @board.reveal_adjacencies([x,y])
+        # @board.reveal_adjacencies(coords)
       when "f"
-        coords = input[1..2].map(&:to_i)
-        @board.flag!(coords[0],coords[1])
+        x, y = input[1..2].map(&:to_i)
+        # coords = input[1..2].map(&:to_i)
+        @board.flag!(x,y)
+        # @board.flag!(coords[0],coords[1])
       when "save"
         save_game
       when "load"
@@ -44,6 +54,8 @@ class MinesweeperGame
       puts "You win!\nIt only took #{Time.now - time} seconds."
     end
   end
+
+  # REV: Would probably try to make this less verbose instead of trying to fit it all in one line. Maybe you could use a hash to count the number of times a set of letters appear in a string and make use of the splat operator? Just an idea, since you are repeating @board.string_count so many times. e.g. @board.string_count("F","*","M")
 
   def game_over?
     (@board.string_count("F", @board.known_board_array) == @board.string_count("M", @board.true_board_array) && \
@@ -181,7 +193,7 @@ class Board
 
   def in_board?(coords)
     x,y = coords
-    x.between?(0,@size - 1) && y.between?(0,@size - 1)
+    x.between?(0, @size - 1) && y.between?(0, @size - 1)
     # coords[0] >= 0 && coords[0] < @size && coords[1] >= 0 && coords[1] < @size
   end
 
