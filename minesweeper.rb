@@ -123,7 +123,11 @@ class Board
   end
 
   def display_board
-    @known_board_array.each do |row|
+    print "  "
+    (0...@size).each{|i| print "#{i} "}
+    puts
+    @known_board_array.each_with_index do |row, index|
+      print "#{index} "
       row.each do |char|
         print "#{char} "
       end
