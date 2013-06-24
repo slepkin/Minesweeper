@@ -16,7 +16,7 @@ class MinesweeperGame
     until game_over?
       @board.display_board
       input = player.take_turn
-      command = input[0]
+      input.nil? ? command = nil : command = input[0]
       case command
       when "r"
         coords = input[1..2].map(&:to_i)
@@ -193,7 +193,12 @@ end
 
 class Human
   def take_turn
-    print "Where would you like to reveal (r) or flag (f)? (format r 0 2) "
+    puts "Enter command. Options:"
+    puts "Reveal (format r 0 2)"
+    puts "Flag (format f 0 2)"
+    puts "save"
+    puts "load"
+    puts "quit"
     gets.chomp.split
   end
 end
@@ -217,8 +222,10 @@ end
 #
 # end
 
-puts "How wide should the field be?"
-size = gets.chomp.to_i
-puts "How many mines?"
-mine_num = gets.chomp.to_i
-MinesweeperGame.new(size,mine_num)
+if __FILE__ == $PROGRAM_NAME
+  puts "How wide should the field be?"
+  size = gets.chomp.to_i
+  puts "How many mines?"
+  mine_num = gets.chomp.to_i
+  MinesweeperGame.new(size,mine_num)
+end
