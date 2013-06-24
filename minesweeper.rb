@@ -125,11 +125,15 @@ class Board
     str_count
   end
 
+  # REV: I am a math major, so... it should be x,y... not y,x :D
+
   def surrounding_mines(coord1, coord2)
     count = 0
     @@moves.each do |move|
-      y,x = move
-      count += 1 if mine?([coord1 + y,coord2 + x]) && in_board?([coord1 + y,coord2 + x])
+      x, y = move[0] + coord1, move[1] + coord2
+      # y,x = move
+      count += 1 if mine?([x,y]) && in_board?([x,y])
+      # count += 1 if mine?([coord1 + y,coord2 + x]) && in_board?([coord1 + y,coord2 + x])
     end
     count
   end
