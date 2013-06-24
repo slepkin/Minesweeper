@@ -177,9 +177,15 @@ class Board
     end
   end
 
+  # REV: You can rewrite def in_board? like this?
+
   def in_board?(coords)
-    coords[0] >= 0 && coords[0] < @size && coords[1] >= 0 && coords[1] < @size
+    x,y = coords
+    x.between?(0,@size - 1) && y.between?(0,@size - 1)
+    # coords[0] >= 0 && coords[0] < @size && coords[1] >= 0 && coords[1] < @size
   end
+
+  # REV: For easier reading, I would have named the mine? method as has_mine?
 
   def mine?(coords)
     if coords[0] >= @size || coords[1] >= @size
