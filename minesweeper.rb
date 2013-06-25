@@ -28,16 +28,16 @@ class MinesweeperGame
 
       case command
       when "r"
-        x, y = input[1..2].map(&:to_i)
+        y, x = input[1..2].map(&:to_i)
         # coords = input[1..2].map(&:to_i)
-        @board.reveal!(x, y)
+        @board.reveal!(y,x)
         # @board.reveal!(coords[0],coords[1])
-        @board.reveal_adjacencies([x,y])
+        @board.reveal_adjacencies([y,x])
         # @board.reveal_adjacencies(coords)
       when "f"
-        x, y = input[1..2].map(&:to_i)
+        y, x = input[1..2].map(&:to_i)
         # coords = input[1..2].map(&:to_i)
-        @board.flag!(x,y)
+        @board.flag!(y,x)
         # @board.flag!(coords[0],coords[1])
       when "save"
         save_game
