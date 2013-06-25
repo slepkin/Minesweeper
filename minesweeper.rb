@@ -1,7 +1,10 @@
 require 'time'
 require 'json'
-
+# GENERAL REVIEW NOTES: You're code reads really nicely (certainly better than mine)
+# It makes good use of OOP design (smart use of classes) and your methods are short and 
+# don't feel too flimsy. 
 class MinesweeperGame
+  #{REV: not immediately clear what the difference between "True board" and "known board" is
   attr_accessor :true_board_array, :known_board_array, :size, :board
 
   def initialize(size, mine_num)
