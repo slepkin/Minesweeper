@@ -1,6 +1,10 @@
 require 'time'
 require 'json'
 
+# REV: In general, you guys tend to use coord1 and coord2 a good bit, but at the same time you also use coord[0] and coord[1] a lot. I would suggest sticking to one or the other. Personally, I would choose to use x, y or something shorter cause it's just easier to type and read.
+
+# Other than that, GOOD JOB!! I love the fact that the board can be customized to the game you want to play.
+
 class MinesweeperGame
   attr_accessor :true_board_array, :known_board_array, :size, :board
 
@@ -125,14 +129,14 @@ class Board
     str_count
   end
 
-  # REV: I am a math major, so... it should be x,y... not y,x :D
+  # REV: Just made lil changes
 
   def surrounding_mines(coord1, coord2)
     count = 0
     @@moves.each do |move|
-      x, y = move[0] + coord1, move[1] + coord2
+      y, x = move[0] + coord1, move[1] + coord2
       # y,x = move
-      count += 1 if mine?([x,y]) && in_board?([x,y])
+      count += 1 if mine?([y,x]) && in_board?([y,x])
       # count += 1 if mine?([coord1 + y,coord2 + x]) && in_board?([coord1 + y,coord2 + x])
     end
     count
@@ -193,11 +197,11 @@ class Board
     end
   end
 
-  # REV: You can rewrite def in_board? like this?
+  # REV: You can rewrite def in_board? like this.
 
   def in_board?(coords)
-    x,y = coords
-    x.between?(0, @size - 1) && y.between?(0, @size - 1)
+    y, x = coords
+    y.between?(0, @size - 1) && x.between?(0, @size - 1)
     # coords[0] >= 0 && coords[0] < @size && coords[1] >= 0 && coords[1] < @size
   end
 
@@ -210,9 +214,11 @@ class Board
     @true_board_array[coords[0]][coords[1]] == "M"
   end
 
-  def reveal!(coord1,coord2)
-    unless @known_board_array[coord1][coord2] == "F"
-      @known_board_array[coord1][coord2] = @true_board_array[coord1][coord2]
+  # REV: I don't know if this method should have an exclamation behind it. Changed the variables for easier coding
+
+  def reveal!(y,x)
+    unless @known_board_array[y][x] == "F"
+      @known_board_array[y][x] = @true_board_array[y][x]
     end
   end
 end
