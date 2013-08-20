@@ -1,4 +1,4 @@
-A mock-up of the classic [Minesweeper](http://en.wikipedia.org/wiki/Minesweeper_\(video_game\)/).
+A mock-up of the classic Minesweeper: http://en.wikipedia.org/wiki/Minesweeper_(video_game).
 
 After selecting the size of the square board (bigger is more difficult), and the number of mines (more is more difficult), the player _reveals_ or _flags_ the hidden cells of the board one at a time. 
 
